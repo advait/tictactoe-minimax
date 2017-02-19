@@ -60,19 +60,18 @@ def next_player(p: Player) -> Player:
     return "X" if p == "O" else "O"
 
 
-def minimax(b: Board, p: Player) -> (Score, bool, Board):
-    score = score_board(b)
-    if game_over(b):
-        return score, False, b  # Game is already over
-    possible_moves = []
+def minimax(b: Board, p: Player) -> (Score, Board):
+    """Returns a move and the corresponding score using minimax."""
+    scored_moves = []
     for move in enumerate_moves(b, p):
-        score, _, _ = minimax(move, next_player(p))
-        possible_moves.append((score, True, move))
-    if len(possible_moves) == 0:
-        return score, False, b  # No more moves available (tie)
+        # Recursively use minimax to score the potential moves
+        score, _ = minimax(move, next_player(p))
+        scored_moves.append((score, move))
+    if not scored_moves:
+        return score_board(b), b  # No positions left
     value_f = max if p == "X" else min  # How to value the possible moves (min or max)
     # If you want more randomness, select randomly between moves that have the same apparent score
-    return value_f(possible_moves)
+    return value_f(scored_moves)
 
 
 def print_board(b: Board):
@@ -81,6 +80,7 @@ def print_board(b: Board):
 
 
 def prompt_move(b: Board, p: Player) -> Board:
+    """Prompts a human player for a move and returns the resulting board."""
     i = int(input("%s's turn. Please enter a position from 0 through 9: " % p))
     if b[i] != " ":
         print("Invalid move")
@@ -100,7 +100,7 @@ def main():
             print("Game Over")
             return
         # Computer's turn
-        s, played, b = minimax(b, "O")
+        s, b = minimax(b, "O")
         print_board(b)
         if game_over(b):
             print("Game Over")
