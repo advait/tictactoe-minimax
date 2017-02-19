@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Dead simple tic-tac-toe minimax experiment."""
 
+import functools
 import itertools
 import math
 import random
@@ -64,6 +65,7 @@ def next_player(p: Player) -> Player:
     return "X" if p == "O" else "O"
 
 
+@functools.lru_cache(maxsize=None)  # Cache minimax results so we don't unnecessarily recompute values
 def minimax(b: Board, p: Player) -> (Score, Board):
     """Returns a move and the corresponding score using minimax."""
     if game_over(b):
