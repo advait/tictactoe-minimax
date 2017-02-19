@@ -25,12 +25,12 @@ col1 = (1, 4, 7)
 col2 = (2, 5, 8)
 diag0 = (0, 4, 8)
 diag1 = (2, 4, 6)
-lines = [row0, row1, row2, col0, col1, col2, diag0, diag1]
+all_lines = [row0, row1, row2, col0, col1, col2, diag0, diag1]
 
 
 def score_board(b: Board) -> Score:
     """Returns Inf if X has won, -Inf if O has won, Zero otherwise"""
-    for line in lines:
+    for line in all_lines:
         s = "".join(b[i] for i in line)  # Concise representation of line
         if s == "XXX":
             return math.inf
