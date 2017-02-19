@@ -1,6 +1,8 @@
 """Dead simple tic-tac-toe minimax experiment."""
 
+import itertools
 import math
+import random
 from typing import List, Tuple
 
 # X, O, or space
@@ -70,8 +72,9 @@ def minimax(b: Board, p: Player) -> (Score, Board):
     if not scored_moves:
         return score_board(b), b  # No positions left
     value_f = max if p == "X" else min  # How to value the possible moves (min or max)
-    # If you want more randomness, select randomly between moves that have the same apparent score
-    return value_f(scored_moves)
+    # Randomly select a move with best score (so we get more randomness, instead of always choosing the last move)
+    best_score, _ = value_f(scored_moves)
+    return random.choice([(score, move) for (score, move) in scored_moves if score == best_score])
 
 
 def print_board(b: Board):
@@ -79,33 +82,37 @@ def print_board(b: Board):
     print("%s|%s|%s\n-+-+-\n%s|%s|%s\n-+-+-\n%s|%s|%s\n" % b)
 
 
-def prompt_move(b: Board, p: Player) -> Board:
+def human_move(b: Board, p: Player = "X") -> Board:
     """Prompts a human player for a move and returns the resulting board."""
     i = int(input("%s's turn. Please enter a position from 0 through 9: " % p))
+    print("")
     if b[i] != " ":
         print("Invalid move")
-        return prompt_move(b, p)
+        return human_move(b, p)
     return play_move(b, p, i)
+
+
+def computer_move(b: Board, p: Player = "O") -> Board:
+    """Plays a computer's turn using minimax and returns the resulting board."""
+    print("Computer's turn. Thinking...\n")
+    _, b = minimax(b, p)
+    return b
 
 
 def main():
     b = (" ",) * 9  # Empty board
     print_board(b)
 
+    play_funs = [human_move, computer_move]
+    random.shuffle(play_funs)  # Randomly choose human or computer first
+    alternating = itertools.cycle(play_funs)  # Infinite cycle between both human/computer
     while True:
-        # Player's turn
-        b = prompt_move(b, "X")
+        play_fun = next(alternating)
+        b = play_fun(b)
         print_board(b)
         if game_over(b):
             print("Game Over")
             return
-        # Computer's turn
-        s, b = minimax(b, "O")
-        print_board(b)
-        if game_over(b):
-            print("Game Over")
-            return
-
 
 if __name__ == "__main__":
     main()
