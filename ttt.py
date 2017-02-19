@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Dead simple tic-tac-toe minimax experiment."""
 
 import itertools
@@ -5,6 +6,7 @@ import math
 import random
 from typing import List, Tuple
 
+# Type definitions
 # X, O, or space
 Square = str
 # X, O
@@ -64,13 +66,13 @@ def next_player(p: Player) -> Player:
 
 def minimax(b: Board, p: Player) -> (Score, Board):
     """Returns a move and the corresponding score using minimax."""
+    if game_over(b):
+        return score_board(b), b  # No positions left
     scored_moves = []
     for move in enumerate_moves(b, p):
         # Recursively use minimax to score the potential moves
         score, _ = minimax(move, next_player(p))
         scored_moves.append((score, move))
-    if not scored_moves:
-        return score_board(b), b  # No positions left
     value_f = max if p == "X" else min  # How to value the possible moves (min or max)
     # Randomly select a move with best score (so we get more randomness, instead of always choosing the last move)
     best_score, _ = value_f(scored_moves)
