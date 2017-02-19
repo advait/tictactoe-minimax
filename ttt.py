@@ -1,3 +1,5 @@
+"""Dead simple tic-tac-toe minimax experiment."""
+
 import math
 from typing import List, Tuple
 
