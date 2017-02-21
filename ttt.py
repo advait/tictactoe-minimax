@@ -66,19 +66,19 @@ def next_player(p: Player) -> Player:
 
 
 @functools.lru_cache(maxsize=None)  # Cache minimax results so we don't unnecessarily recompute values
-def minimax(b: Board, p: Player) -> (Score, Board):
-    """Returns a move and the corresponding score using minimax."""
+def minimax(b: Board, p: Player) -> (Score, List[Board]):
+    """Returns the best move score and a list of all potential moves with that score."""
     if game_over(b):
-        return score_board(b), b  # No positions left
+        return score_board(b), []  # No positions left
     scored_moves = []
     for move in enumerate_moves(b, p):
         # Recursively use minimax to score the potential moves
         score, _ = minimax(move, next_player(p))
         scored_moves.append((score, move))
     value_f = max if p == "X" else min  # How to value the possible moves (min or max)
-    # Randomly select a move with best score (so we get more randomness, instead of always choosing the last move)
     best_score, _ = value_f(scored_moves)
-    return random.choice([(score, move) for (score, move) in scored_moves if score == best_score])
+    best_moves = [move for (score, move) in scored_moves if score == best_score]
+    return best_score, best_moves
 
 
 def print_board(b: Board):
@@ -99,8 +99,8 @@ def human_move(b: Board, p: Player = "X") -> Board:
 def computer_move(b: Board, p: Player = "O") -> Board:
     """Plays a computer's turn using minimax and returns the resulting board."""
     print("Computer's turn. Thinking...\n")
-    _, b = minimax(b, p)
-    return b
+    _, moves = minimax(b, p)
+    return random.choice(moves)  # Randomly select a move from what's available to us
 
 
 def main():
