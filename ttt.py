@@ -16,6 +16,7 @@ Player = str
 Score = float
 # Immutable tuple of Squares
 Board = Tuple[Square, Square, Square, Square, Square, Square, Square, Square, Square]
+empty_board: Board = (" ",) * 9
 
 # Indexes of all the rows, cols, and diags
 row0 = (0, 1, 2)
@@ -55,9 +56,9 @@ def play_move(b: Board, p: Player, i: int) -> Board:
     return b[:i] + (p,) + b[i + 1:]
 
 
-def enumerate_moves(b: Board, p: Player) -> List[Board]:
+def enumerate_moves(b: Board) -> List[int]:
     """Enumerates all the possible moves that player to_play can make."""
-    return [play_move(b, p, i) for i, square in enumerate(b) if square == " "]
+    return [i for i, square in enumerate(b) if square == " "]
 
 
 def next_player(p: Player) -> Player:
@@ -66,15 +67,16 @@ def next_player(p: Player) -> Player:
 
 
 @functools.lru_cache(maxsize=None)  # Cache minimax results so we don't unnecessarily recompute values
-def minimax(b: Board, p: Player) -> (Score, List[Board]):
+def minimax(b: Board, p: Player) -> (Score, List[int]):
     """Returns the best move score and a list of all potential moves with that score."""
     if game_over(b):
         return score_board(b), []  # No positions left
-    scored_moves = []
-    for move in enumerate_moves(b, p):
+    scored_moves: List[(Score, int)] = []
+    for i in enumerate_moves(b):
         # Recursively use minimax to score the potential moves
-        score, _ = minimax(move, next_player(p))
-        scored_moves.append((score, move))
+        next_board = play_move(b, p, i)
+        score, _ = minimax(next_board, next_player(p))
+        scored_moves.append((score, i))
     value_f = max if p == "X" else min  # How to value the possible moves (min or max)
     best_score, _ = value_f(scored_moves)
     best_moves = [move for (score, move) in scored_moves if score == best_score]
@@ -103,8 +105,9 @@ def computer_move(b: Board, p: Player = "O") -> Board:
     return random.choice(moves)  # Randomly select a move from what's available to us
 
 
-def main():
-    b = (" ",) * 9  # Empty board
+def pvc():
+    """Run Player vs. Computer game."""
+    b = empty_board
     print_board(b)
 
     play_funs = [human_move, computer_move]
@@ -117,6 +120,56 @@ def main():
         if game_over(b):
             print("Game Over")
             return
+
+
+def all_enumerate(b: Board, p: Player = "X") -> List[int]:
+    return enumerate_moves(b)
+
+
+def computer_enumerate(b: Board, p: Player = "O") -> List[int]:
+    _, moves = minimax(b, p)
+    return moves
+
+
+def board_to_vec(b: Board) -> List[int]:
+    """Converts a tuple-board representation to a vector representation."""
+    ret = []
+    for i in range(9):
+        ret.append(1 if b[i] == "X" else 0)
+        ret.append(1 if b[i] == "O" else 0)
+    return ret
+
+
+def full_tree():
+    visited_boards = {}
+    training = {}
+
+    def rec(b: Board, p: Player):
+        if b in visited_boards:
+            return
+        play_fun = all_enumerate if p == "X" else computer_enumerate
+        moves = play_fun(b, p)
+        if p == "O":
+            out_vec = [0 if i not in moves else 1 for i in range(9)]
+            visited_boards[b] = True
+            training[b] = out_vec
+        next_boards = [play_move(b, p, i) for i in moves]
+        for next_board in next_boards:
+            rec(next_board, next_player(p))
+
+    rec(empty_board, "O")
+    visited_boards = {}  # Reset visited cache
+    rec(empty_board, "X")
+
+    for b, o in training.items():
+        in_vec = board_to_vec(b)
+        full_vec = in_vec + o
+        print(full_vec)
+
+
+def main():
+    full_tree()
+
 
 if __name__ == "__main__":
     main()
