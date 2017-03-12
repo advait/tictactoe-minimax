@@ -142,29 +142,27 @@ def board_to_vec(b: Board) -> List[int]:
 
 def full_tree():
     visited_boards = {}
-    training = {}
 
     def rec(b: Board, p: Player):
-        if b in visited_boards:
+        if (b, p) in visited_boards:
             return
         play_fun = all_enumerate if p == "X" else computer_enumerate
         moves = play_fun(b, p)
         if p == "O":
             out_vec = [0 if i not in moves else 1 for i in range(9)]
-            visited_boards[b] = True
-            training[b] = out_vec
+            visited_boards[(b, p)] = out_vec
         next_boards = [play_move(b, p, i) for i in moves]
         for next_board in next_boards:
             rec(next_board, next_player(p))
 
+    # Explore full game space with different starting players
     rec(empty_board, "O")
-    visited_boards = {}  # Reset visited cache
     rec(empty_board, "X")
-
-    for b, o in training.items():
-        in_vec = board_to_vec(b)
-        full_vec = in_vec + o
-        print(full_vec)
+    # Print in CSV form
+    for (board, _), out_vec in visited_boards.items():
+        in_vec = board_to_vec(board)
+        full_vec = in_vec + out_vec
+        print(",".join(str(i) for i in full_vec))
 
 
 def main():
